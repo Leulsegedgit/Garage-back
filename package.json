@@ -1,0 +1,18 @@
+{
+  "name": "contact-list",
+  "version": "1.0.0",
+  "description": "This is testing the MEAN stack",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Leul",
+  "license": "ISC",
+  "dependencies": {
+    "body-parser": "^1.19.2",
+    "cors": "^2.8.5",
+    "express": "^4.17.3",
+    "mongoose": "^6.2.4",
+    "mysql": "^2.18.1"
+  }
+}
