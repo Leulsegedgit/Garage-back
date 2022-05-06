@@ -41,6 +41,7 @@ router.get('/getpendingregisters/:id',(req,res,next)=>{
     }
 });
 });
+//post method goes here
 router.post('/getstore',(req,res,next)=>{
     let store = req.body;
 mysqlConnection.query('SELECT * FROM store WHERE request_number = ? || service_number = ? || requester = ? || approver = ? || date = ? LIMIT 10;',[store.request_number,store.service_number,store.requester,store.approver,store.date],(err,rows,fields)=>{
