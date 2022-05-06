@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const mysqlConnection = require('../db');
-
+//crude operation for users
 router.get('/users',(req,res,next)=>{
     //res.send('Retriving contacts')
     mysqlConnection.query("SELECT * FROM users ;",(err,rows,fields)=>{
@@ -14,10 +14,25 @@ router.get('/users',(req,res,next)=>{
     }
 });
 });
-router.get('/getpendingregisters',(req,res,next)=>{
+router.get('/getpendingregisters/',(req,res,next)=>{
     //res.send('Retriving contacts')
     mysqlConnection.query("SELECT * FROM register_request LIMIT 10;",(err,rows,fields)=>{
     if(!err){
+        res.send(rows);
+        
+    }
+    else{
+       
+    }
+});
+});
+//fetch single data
+router.get('/getpendingregisters/:id',(req,res,next)=>{
+    //res.send('Retriving contacts')
+    let ID=req.params.id;
+    mysqlConnection.query("SELECT * FROM register_request where id=?",(err,rows,fields)=>{
+    if(!err){
+        console.log("id selected",ID);
         res.send(rows);
         
     }
@@ -40,6 +55,16 @@ mysqlConnection.query('SELECT * FROM store WHERE request_number = ? || service_n
 });
 router.delete('/deletependingregisters/:id',(req,res,next)=>{
     mysqlConnection.query("DELETE  FROM register_request WHERE id = ?",[req.params.id],(err,rows,fields)=>{
+        if(!err){
+            res.send(rows);
+        }
+        else{
+            res.send(err);
+        }
+    });
+});
+router.delete('/deletestore/:id',(req,res,next)=>{
+    mysqlConnection.query("DELETE  FROM store WHERE request_number = ?",[req.params.id],(err,rows,fields)=>{
         if(!err){
             res.send(rows);
         }
