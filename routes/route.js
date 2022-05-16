@@ -7,10 +7,10 @@ router.get('/users',(req,res,next)=>{
     mysqlConnection.query("SELECT * FROM users ;",(err,rows,fields)=>{
     if(!err){
         res.send(rows);
-        console.log(rows);
+        
     }
     else{
-        console.log(err);
+        
     }
 });
 });
@@ -32,7 +32,7 @@ router.get('/getpendingregisters/:id',(req,res,next)=>{
     let ID=req.params.id;
     mysqlConnection.query("SELECT * FROM register_request where id=?",(err,rows,fields)=>{
     if(!err){
-        console.log("id selected",ID);
+       
         res.send(rows);
         
     }
@@ -53,6 +53,22 @@ mysqlConnection.query('SELECT * FROM store WHERE request_number = ? || service_n
     }
 });
 });
+
+router.post('/getdriver',(req,res,next)=>{
+    let driver = req.body;
+    console.log(driver)
+mysqlConnection.query('SELECT * FROM drivers WHERE id = ?;',[driver.id],(err,rows,fields)=>{
+    if(!err){
+        res.send(rows);
+        console.log(rows);
+        
+    }
+    else{
+        console.log(err);
+    }
+});
+});
+
 router.delete('/deletependingregisters/:id',(req,res,next)=>{
     mysqlConnection.query("DELETE  FROM register_request WHERE id = ?",[req.params.id],(err,rows,fields)=>{
         if(!err){
@@ -109,6 +125,23 @@ router.post('/addstore',(req,res,next)=>{
     var sql = "INSERT IGNORE INTO store(request_number,service_number,requester,approver,date) VALUES(?,?,?,?,?);";
     
     mysqlConnection.query(sql,[store.request_number,store.service_number,store.requester,store.approver,store.date],(err,rows,fields)=>{
+        if(!err){
+            res.send(rows);
+            
+        }
+        else{
+            res.send(err);
+            
+        }
+    });
+
+});
+
+router.post('/adddriver',(req,res,next)=>{
+    let driver = req.body;
+    var sql = "INSERT IGNORE INTO drivers(id,first_name,middle_name,last_name,phone_number,address,city,state,date) VALUES(?,?,?,?,?,?,?,?,?);";
+    
+    mysqlConnection.query(sql,[driver.id,driver.first_name,driver.middle_name,driver.last_name,driver.phone_number,driver.address,driver.city,driver.state,driver.date],(err,rows,fields)=>{
         if(!err){
             res.send(rows);
             
