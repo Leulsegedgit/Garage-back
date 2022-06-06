@@ -1,6 +1,8 @@
 const express = require('express');
+const jwt = require('jsonwebtoken');
 const router = express.Router();
 const mysqlConnection = require('../db');
+
 //crude operation for users
 router.get('/users',(req,res,next)=>{
     //res.send('Retriving contacts')
@@ -41,9 +43,10 @@ router.get('/getpendingregisters/:id',(req,res,next)=>{
     }
 });
 });
-router.post('/getstore',(req,res,next)=>{
-    let store = req.body;
-mysqlConnection.query('SELECT * FROM store WHERE request_number = ? || service_number = ? || requester = ? || approver = ? || date = ? LIMIT 10;',[store.request_number,store.service_number,store.requester,store.approver,store.date],(err,rows,fields)=>{
+
+router.post('/gettechnician',(req,res,next)=>{
+    let technician = req.body;
+mysqlConnection.query('SELECT * FROM technicians WHERE id = ? || first_name = ? || middle_name = ? || last_name = ? || phone_number = ? || major = ? || level = ? || date = ? LIMIT 10;',[technician.id,technician.first_name,technician.middle_name,technician.last_name,technician.phone_number,technician.major,technician.level,technician.date],(err,rows,fields)=>{
     if(!err){
         res.send(rows);
         
@@ -79,8 +82,10 @@ router.delete('/deletependingregisters/:id',(req,res,next)=>{
         }
     });
 });
-router.delete('/deletestore/:id',(req,res,next)=>{
-    mysqlConnection.query("DELETE  FROM store WHERE request_number = ?",[req.params.id],(err,rows,fields)=>{
+
+
+router.delete('/deletetechnician/:id',(req,res,next)=>{
+    mysqlConnection.query("DELETE  FROM technicians WHERE id = ?",[req.params.id],(err,rows,fields)=>{
         if(!err){
             res.send(rows);
         }
@@ -90,13 +95,41 @@ router.delete('/deletestore/:id',(req,res,next)=>{
     });
 });
 
-router.post('/getuser',(req,res,next)=>{
+function verifyToken(req, res, next){
+    if(!req.headers.authorization){
+        return res.status(401).send('Unauthorized request')
+    }
+    let token = req.headers.authorization.split([' '])[1]
+    if(token === 'null'){
+        return res.status(401).send('Unauthorized request')
+    }
+    let payload = jwt.verify(token,'secretkey_fbc')
+    if(!payload){
+        return res.status(401).send('Unauthorized request')
+    }
+    req.password = payload.subject
+    next()
+}
+
+router.post('/getuser', (req,res,next)=>{
     let usr = req.body;
     var sql = "SELECT * FROM users WHERE  first_name = ? && password = ? ";
     mysqlConnection.query(sql,[usr.first_name,usr.password],(err,rows,fields)=>{
         if(!err){
-            res.send(rows);
+            if(rows.length > 0)
+            { 
+                var row
+                Object.keys(rows).forEach(function(key) {
+                     row = rows[key];
+                    
+                });
+                let payload = {subject: row.id}
+            let token = jwt.sign(payload,'secretkey_fpc',)
             
+            res.send({token,type: row.type});
+            
+            }
+            else res.send('');
         }
         else{
             res.send(err);
@@ -104,6 +137,7 @@ router.post('/getuser',(req,res,next)=>{
     });
 
 });
+//
 router.post('/adduser',(req,res,next)=>{
     let usr = req.body;
     var sql = "INSERT IGNORE INTO users(id,first_name,last_name,password,type) VALUES(?,?,?,?,?);";
@@ -120,11 +154,12 @@ router.post('/adduser',(req,res,next)=>{
     });
 
 });
-router.post('/addstore',(req,res,next)=>{
-    let store = req.body;
-    var sql = "INSERT IGNORE INTO store(request_number,service_number,requester,approver,date) VALUES(?,?,?,?,?);";
+
+router.post('/addtechnician',(req,res,next)=>{
+    let technician = req.body;
+    var sql = "INSERT IGNORE INTO technicians(id,first_name,middle_name,last_name,phone_number,major,level,date) VALUES(?,?,?,?,?,?,?,?);";
     
-    mysqlConnection.query(sql,[store.request_number,store.service_number,store.requester,store.approver,store.date],(err,rows,fields)=>{
+    mysqlConnection.query(sql,[technician.id,technician.first_name,technician.middle_name,technician.last_name,technician.phone_number,technician.major,technician.level,technician.date],(err,rows,fields)=>{
         if(!err){
             res.send(rows);
             
@@ -173,6 +208,244 @@ router.post('/adduserregistrationrequest',(req,res,next)=>{
 
 router.delete('/users/:id',(req,res,next)=>{
     mysqlConnection.query("DELETE  FROM contacts WHERE id = ?",[req.params.id],(err,rows,fields)=>{
+        if(!err){
+            res.send(rows);
+        }
+        else{
+            res.send(err);
+        }
+    });
+});
+//store request 
+router.post('/getstorerequest', verifyToken, (req,res,next)=>{
+    let store = req.body;
+mysqlConnection.query('SELECT * FROM store_request WHERE request_number = ?  LIMIT 10;',[store.request_number],(err,rows,fields)=>{
+    if(!err){
+        res.send(rows);
+        
+    }
+    else{
+       
+    }
+});
+});
+
+
+router.post('/addstorerequest',(req,res,next)=>{
+    let store = req.body;
+    var sql = "INSERT IGNORE INTO store_request(request_number,service_number,part_number,requester,approver,date) VALUES(?,?,?,?,?,?);";
+    
+    mysqlConnection.query(sql,[store.request_number,store.service_number,store.part_number,store.requester,store.approver,store.date],(err,rows,fields)=>{
+        if(!err){
+            res.send(rows);
+            
+        }
+        else{
+            res.send(err);
+            
+        }
+    });
+
+});
+router.put('/editstorerequest',(req,res,next)=>{
+    let store_request = req.body;
+    var sql = "UPDATE store_request SET  part_number = ? , request_number = ? , service_number = ? , requester = ? , approver = ? , date = ? WHERE request_number = ?;";
+    
+    mysqlConnection.query(sql,[store_request.part_number,store_request.request_number,store_request.service_number,store_request.requester,store_request.approver,store_request.date,store_request.request_number],(err,rows,fields)=>{
+        if(!err){
+            res.send(rows);
+            
+        }
+        else{
+            res.send(err);
+            
+        }
+    });
+
+});
+
+router.delete('/deletestorerequest/:id',(req,res,next)=>{
+    mysqlConnection.query("DELETE  FROM store_request WHERE request_number = ?",[req.params.id],(err,rows,fields)=>{
+        if(!err){
+            res.send(rows);
+        }
+        else{
+            res.send(err);
+        }
+    });
+});
+//Store receive
+router.post('/getstorereceive',(req,res,next)=>{
+    let store_receive = req.body;
+mysqlConnection.query('SELECT * FROM store_receive WHERE plate_number = ? || receive_vocher_number = ? || part_number = ? LIMIT 10;',[store_receive.plate_number,store_receive.receive_vocher_number,store_receive.part_number],(err,rows,fields)=>{
+    if(!err){
+        res.send(rows);
+        
+    }
+    else{
+       
+    }
+});
+});
+
+
+router.post('/addstorereceive',(req,res,next)=>{
+    let store_receive = req.body;
+    var sql = "INSERT IGNORE INTO store_receive(plate_number,receive_vocher_number,part_number,receiver,deliverer,supplier,refference,unit_price,quantity_received,quantity_remaining,date) VALUES(?,?,?,?,?,?,?,?,?,?,?);";
+    
+    mysqlConnection.query(sql,[store_receive.plate_number,store_receive.receive_vocher_number,store_receive.part_number,store_receive.receiver,store_receive.deliverer,store_receive.supplier,store_receive.refference,store_receive.unit_price,store_receive.quantity_received,store_receive.quantity_remaining,store_receive.date],(err,rows,fields)=>{
+        if(!err){
+            res.send(rows);
+            
+        }
+        else{
+            res.send(err);
+            
+        }
+    });
+
+});
+
+router.put('/editstorereceive',(req,res,next)=>{
+    let store_receive = req.body;
+    var sql = "UPDATE store_receive SET plate_number = ? , receive_vocher_number = ? , part_number = ? , receiver = ? , deliverer = ? , supplier = ? , refference = ? , unit_price = ? , quantity_received = ? , quantity_remaining = ? , date = ? WHERE receive_vocher_number = ?;";
+    
+    mysqlConnection.query(sql,[store_receive.plate_number,store_receive.receive_vocher_number,store_receive.part_number,store_receive.receiver,store_receive.deliverer,store_receive.supplier,store_receive.refference,store_receive.unit_price,store_receive.quantity_received,store_receive.quantity_remaining,store_receive.date,store_receive.receive_vocher_number],(err,rows,fields)=>{
+        if(!err){
+            res.send(rows);
+            
+        }
+        else{
+            res.send(err);
+            
+        }
+    });
+
+});
+
+router.delete('/deletestorereceive/:id',(req,res,next)=>{
+    mysqlConnection.query("DELETE  FROM store_receive WHERE part_number = ?",[req.params.id],(err,rows,fields)=>{
+        if(!err){
+            res.send(rows);
+        }
+        else{
+            res.send(err);
+        }
+    });
+});
+
+//store issue
+
+router.post('/getstoreissue',(req,res,next)=>{
+    let store_issue = req.body;
+mysqlConnection.query('SELECT * FROM store_issue WHERE issue_refference_number = ?  LIMIT 10;',[store_issue.issue_refference_number],(err,rows,fields)=>{
+    if(!err){
+        res.send(rows);
+        
+    }
+    else{
+       
+    }
+});
+});
+
+
+router.post('/addstoreissue',(req,res,next)=>{
+    let store_issue = req.body;
+    var sql = "INSERT IGNORE INTO store_issue(request_number,issue_refference_number,part_number,quantity_available,quantity_requested,date) VALUES(?,?,?,?,?,?);";
+    
+    mysqlConnection.query(sql,[store_issue.request_number,store_issue.issue_refference_number,store_issue.part_number,store_issue.quantity_available,store_issue.quantity_requested,store_issue.date],(err,rows,fields)=>{
+        if(!err){
+            res.send(rows);
+            
+        }
+        else{
+            res.send(err);
+            
+        }
+    });
+
+});
+router.put('/editstoreissue',(req,res,next)=>{
+    let store_issue = req.body;
+    var sql = "UPDATE store_issue SET  request_number = ? , issue_refference_number = ? , part_number = ? ,quantity_available = ?, quantity_requested = ? , date = ? WHERE issue_refference_number = ?;";
+    
+    mysqlConnection.query(sql,[store_issue.request_number,store_issue.issue_refference_number,store_issue.part_number,store_issue.quantity_available,store_issue.quantity_requested,store_issue.date,store_issue.issue_refference_number],(err,rows,fields)=>{
+        if(!err){
+            res.send(rows);
+            
+        }
+        else{
+            res.send(err);
+            
+        }
+    });
+
+});
+
+router.delete('/deletestoreissue/:id',(req,res,next)=>{
+    mysqlConnection.query("DELETE  FROM store_issue WHERE issue_refference_number = ?",[req.params.id],(err,rows,fields)=>{
+        if(!err){
+            res.send(rows);
+        }
+        else{
+            res.send(err);
+        }
+    });
+});
+
+
+//spare
+
+router.post('/getspare',(req,res,next)=>{
+    let store_issue = req.body;
+mysqlConnection.query('SELECT * FROM spare WHERE part_number = ?  LIMIT 10;',[store_issue.part_number],(err,rows,fields)=>{
+    if(!err){
+        res.send(rows);
+        
+    }
+    else{
+        res.send(err);
+    }
+});
+});
+
+
+router.post('/addspare',(req,res,next)=>{
+    let spare = req.body;
+    var sql = "INSERT IGNORE INTO spare(part_number,part_name,unit_measure,vehicle_type,unit_price,store_number,part_type,description,date) VALUES(?,?,?,?,?,?,?,?,?);";
+    
+    mysqlConnection.query(sql,[spare.part_number,spare.part_name,spare.unit_measure,spare.vehicle_type,spare.unit_price,spare.store_number,spare.part_type,spare.description,spare.date],(err,rows,fields)=>{
+        if(!err){
+            res.send(rows);
+            
+        }
+        else{
+            res.send(err);
+            
+        }
+    });
+
+});
+router.put('/editspare',(req,res,next)=>{
+    let spare = req.body;
+    var sql = "UPDATE spare SET  part_number = ? , part_name = ? , unit_measure = ? ,vehicle_type = ?, unit_price = ?,store_number = ?,part_type = ?,description = ? , date = ? WHERE issue_refference_number = ?;";
+    
+    mysqlConnection.query(sql,[spare.part_number,spare.part_name,spare.unit_measure,spare.vehicle_type,spare.unit_price,spare.store_number,spare.part_type,spare.description,spare.date],(err,rows,fields)=>{
+        if(!err){
+            res.send(rows);
+            
+        }
+        else{
+            res.send(err);
+            
+        }
+    });
+
+});
+
+router.delete('/deletespare/:id',(req,res,next)=>{
+    mysqlConnection.query("DELETE  FROM spare WHERE part_number = ?",[req.params.id],(err,rows,fields)=>{
         if(!err){
             res.send(rows);
         }
