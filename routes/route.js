@@ -454,5 +454,66 @@ router.delete('/deletespare/:id',(req,res,next)=>{
         }
     });
 });
+//Employee registration
+
+router.post('/getemploye',(req,res,next)=>{
+    let store_issue = req.body;
+mysqlConnection.query('SELECT * FROM employe WHERE employe_id = ?  LIMIT 10;',[store_issue.part_number],(err,rows,fields)=>{
+    if(!err){
+        res.send(rows);
+        
+    }
+    else{
+        res.send(err);
+    }
+});
+});
+
+
+router.post('/addemploye',(req,res,next)=>{
+    let employe = req.body;
+    var sql = "INSERT IGNORE INTO employe(employe_id,title,name,gender,profession,responsibility,department,directorate,division,mastebaberiya,team,level,type,salary,birth_date,hire_date) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);";
+    
+    mysqlConnection.query(sql,[employe.employe_id,employe.title,employe.name,employe.gender,employe.profession,employe.responsibility,employe.department,employe.directorate,employe.division,employe.mastebaberiya,employe.team,employe.level,employe.type,employe.salary,employe.birth_date,employe.hire_date],(err,rows,fields)=>{
+        if(!err){
+            res.send(rows);
+            
+        }
+        else{
+            res.send(err);
+            
+        }
+    });
+
+});
+router.put('/editemploye',(req,res,next)=>{
+    let employe = req.body;
+    var sql = "UPDATE spare SET  employe_id = ? , title = ? , name = ? ,gender = ?, profession = ?,responsibility = ?,department = ?,directorate = ? , division = ?,mastebaberiya = ?, team = ?, level = ?, type = ?, salary = ?, birth_date =?, hire_date = ? WHERE issue_refference_number = ?;";
+    
+    mysqlConnection.query(sql,[employe.employe_id,employe.title,employe.name,employe.gender,employe.profession,employe.responsibility,employe.department,employe.directorate,employe.division,employe.mastebaberiya,employe.team,employe.level,employe.type,employe.salary,employe.birth_date,employe.hire_date],(err,rows,fields)=>{
+        if(!err){
+            res.send(rows);
+            
+        }
+        else{
+            res.send(err);
+            
+        }
+    });
+
+});
+
+router.delete('/deleteemploye/:id',(req,res,next)=>{
+    mysqlConnection.query("DELETE  FROM employe WHERE employe_id  = ?",[req.params.id],(err,rows,fields)=>{
+        if(!err){
+            res.send(rows);
+        }
+        else{
+            res.send(err);
+        }
+    });
+});
+
+
 
 module.exports = router;
