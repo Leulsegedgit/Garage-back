@@ -59,15 +59,14 @@ mysqlConnection.query('SELECT * FROM technicians WHERE id = ? || first_name = ? 
 
 router.post('/getdriver',(req,res,next)=>{
     let driver = req.body;
-    console.log(driver)
+    
 mysqlConnection.query('SELECT * FROM drivers WHERE id = ?;',[driver.id],(err,rows,fields)=>{
     if(!err){
         res.send(rows);
-        console.log(rows);
         
     }
     else{
-        console.log(err);
+        
     }
 });
 });
@@ -96,16 +95,17 @@ router.delete('/deletetechnician/:id',(req,res,next)=>{
 });
 
 function verifyToken(req, res, next){
+
     if(!req.headers.authorization){
-        return res.status(401).send('Unauthorized request')
+        return res.status(401).send('Unauthorized request:1')
     }
     let token = req.headers.authorization.split([' '])[1]
     if(token === 'null'){
-        return res.status(401).send('Unauthorized request')
+        return res.status(401).send('Unauthorized request:2')
     }
-    let payload = jwt.verify(token,'secretkey_fbc')
+    let payload = jwt.verify(token,'secretkey_fpc')
     if(!payload){
-        return res.status(401).send('Unauthorized request')
+        return res.status(401).send('Unauthorized request:3')
     }
     req.password = payload.subject
     next()
@@ -233,9 +233,9 @@ mysqlConnection.query('SELECT * FROM store_request WHERE request_number = ?  LIM
 
 router.post('/addstorerequest',(req,res,next)=>{
     let store = req.body;
-    var sql = "INSERT IGNORE INTO store_request(request_number,service_number,part_number,requester,approver,date) VALUES(?,?,?,?,?,?);";
+    var sql = "INSERT IGNORE INTO store_request(request_number,service_number,part_number,requester,approver,quantity,date) VALUES(?,?,?,?,?,?,?);";
     
-    mysqlConnection.query(sql,[store.request_number,store.service_number,store.part_number,store.requester,store.approver,store.date],(err,rows,fields)=>{
+    mysqlConnection.query(sql,[store.request_number,store.service_number,store.part_number,store.requester,store.approver,store.quantity,store.date],(err,rows,fields)=>{
         if(!err){
             res.send(rows);
             
@@ -249,9 +249,9 @@ router.post('/addstorerequest',(req,res,next)=>{
 });
 router.put('/editstorerequest',(req,res,next)=>{
     let store_request = req.body;
-    var sql = "UPDATE store_request SET  part_number = ? , request_number = ? , service_number = ? , requester = ? , approver = ? , date = ? WHERE request_number = ?;";
+    var sql = "UPDATE store_request SET  part_number = ? , request_number = ? , service_number = ? , requester = ? , approver = ?,quantity = ? , date = ? WHERE request_number = ?;";
     
-    mysqlConnection.query(sql,[store_request.part_number,store_request.request_number,store_request.service_number,store_request.requester,store_request.approver,store_request.date,store_request.request_number],(err,rows,fields)=>{
+    mysqlConnection.query(sql,[store_request.part_number,store_request.request_number,store_request.service_number,store_request.requester,store_request.approver,store_request.quantity,store_request.date,store_request.request_number],(err,rows,fields)=>{
         if(!err){
             res.send(rows);
             
@@ -413,9 +413,9 @@ mysqlConnection.query('SELECT * FROM spare WHERE part_number = ?  LIMIT 10;',[st
 
 router.post('/addspare',(req,res,next)=>{
     let spare = req.body;
-    var sql = "INSERT IGNORE INTO spare(part_number,part_name,unit_measure,vehicle_type,unit_price,store_number,part_type,description,date) VALUES(?,?,?,?,?,?,?,?,?);";
+    var sql = "INSERT IGNORE INTO spare(part_number,part_name,unit_measure,vehicle_type,unit_price,store_number,part_type,location,description,date) VALUES(?,?,?,?,?,?,?,?,?,?);";
     
-    mysqlConnection.query(sql,[spare.part_number,spare.part_name,spare.unit_measure,spare.vehicle_type,spare.unit_price,spare.store_number,spare.part_type,spare.description,spare.date],(err,rows,fields)=>{
+    mysqlConnection.query(sql,[spare.part_number,spare.part_name,spare.unit_measure,spare.vehicle_type,spare.unit_price,spare.store_number,spare.part_type,spare.location,spare.description,spare.date],(err,rows,fields)=>{
         if(!err){
             res.send(rows);
             
@@ -429,9 +429,9 @@ router.post('/addspare',(req,res,next)=>{
 });
 router.put('/editspare',(req,res,next)=>{
     let spare = req.body;
-    var sql = "UPDATE spare SET  part_number = ? , part_name = ? , unit_measure = ? ,vehicle_type = ?, unit_price = ?,store_number = ?,part_type = ?,description = ? , date = ? WHERE issue_refference_number = ?;";
+    var sql = "UPDATE spare SET  part_number = ? , part_name = ? , unit_measure = ? ,vehicle_type = ?, unit_price = ?,store_number = ?,part_type = ?,location = ?,description = ? , date = ? WHERE part_number = ?;";
     
-    mysqlConnection.query(sql,[spare.part_number,spare.part_name,spare.unit_measure,spare.vehicle_type,spare.unit_price,spare.store_number,spare.part_type,spare.description,spare.date],(err,rows,fields)=>{
+    mysqlConnection.query(sql,[spare.part_number,spare.part_name,spare.unit_measure,spare.vehicle_type,spare.unit_price,spare.store_number,spare.part_type,spare.location,spare.description,spare.date,spare.part_number],(err,rows,fields)=>{
         if(!err){
             res.send(rows);
             
@@ -457,8 +457,8 @@ router.delete('/deletespare/:id',(req,res,next)=>{
 //Employee registration
 
 router.post('/getemploye',(req,res,next)=>{
-    let store_issue = req.body;
-mysqlConnection.query('SELECT * FROM employe WHERE employe_id = ?  LIMIT 10;',[store_issue.part_number],(err,rows,fields)=>{
+    let employe = req.body;
+mysqlConnection.query('SELECT * FROM employe WHERE employe_id = ?  LIMIT 10;',[employe.employe_id],(err,rows,fields)=>{
     if(!err){
         res.send(rows);
         
@@ -514,6 +514,39 @@ router.delete('/deleteemploye/:id',(req,res,next)=>{
     });
 });
 
+//helper functions
+router.get('/getnames/:starting',(req,res,next)=>{
+    //res.send('Retriving contacts')
+    let starting = req.params.starting;
+    starting = starting+'%'
+    
+    mysqlConnection.query("SELECT name FROM employe where name  LIKE ?",starting,(err,rows,fields)=>{
+    if(!err){
+       
+        res.send(rows);
+        
+    }
+    else{
+        res.send(err);
+    }
+});
+});
 
+router.get('/getbypartnumber/:partnumber',(req,res,next)=>{
+    //res.send('Retriving contacts')
+    let partnumber = req.params.partnumber;
+    
+    
+    mysqlConnection.query("SELECT part_name FROM spare where part_number  = ?",partnumber,(err,rows,fields)=>{
+    if(!err){
+       
+        res.send(rows);
+        
+    }
+    else{
+        res.send(err);
+    }
+});
+});
 
 module.exports = router;
