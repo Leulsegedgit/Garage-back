@@ -113,7 +113,7 @@ function verifyToken(req, res, next){
 
 router.post('/getuser', (req,res,next)=>{
     let usr = req.body;
-    var sql = "SELECT * FROM users WHERE  first_name = ? && password = ? ";
+    var sql = "SELECT * FROM employe WHERE  employe_id = ? && password = ? ";
     mysqlConnection.query(sql,[usr.first_name,usr.password],(err,rows,fields)=>{
         if(!err){
             if(rows.length > 0)
@@ -123,10 +123,10 @@ router.post('/getuser', (req,res,next)=>{
                      row = rows[key];
                     
                 });
-                let payload = {subject: row.id}
+                let payload = {subject: row.employe_id}
             let token = jwt.sign(payload,'secretkey_fpc',)
             
-            res.send({token,type: row.type});
+            res.send({token,type: row.type,name: row.name});
             
             }
             else res.send('');
@@ -413,9 +413,9 @@ mysqlConnection.query('SELECT * FROM spare WHERE part_number = ?  LIMIT 10;',[st
 
 router.post('/addspare',(req,res,next)=>{
     let spare = req.body;
-    var sql = "INSERT IGNORE INTO spare(part_number,part_name,unit_measure,vehicle_type,unit_price,store_number,part_type,location,description,date) VALUES(?,?,?,?,?,?,?,?,?,?);";
+    var sql = "INSERT IGNORE INTO spare(part_number,part_name,unit_measure,vehicle_type,unit_price,store_number,part_type,location,class_type,heavy_light,consumable,description,date) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?);";
     
-    mysqlConnection.query(sql,[spare.part_number,spare.part_name,spare.unit_measure,spare.vehicle_type,spare.unit_price,spare.store_number,spare.part_type,spare.location,spare.description,spare.date],(err,rows,fields)=>{
+    mysqlConnection.query(sql,[spare.part_number,spare.part_name,spare.unit_measure,spare.vehicle_type,spare.unit_price,spare.store_number,spare.part_type,spare.location,spare.class,spare.heavy_light,spare.consumable,spare.description,spare.date],(err,rows,fields)=>{
         if(!err){
             res.send(rows);
             
@@ -429,9 +429,9 @@ router.post('/addspare',(req,res,next)=>{
 });
 router.put('/editspare',(req,res,next)=>{
     let spare = req.body;
-    var sql = "UPDATE spare SET  part_number = ? , part_name = ? , unit_measure = ? ,vehicle_type = ?, unit_price = ?,store_number = ?,part_type = ?,location = ?,description = ? , date = ? WHERE part_number = ?;";
+    var sql = "UPDATE spare SET  part_number = ? , part_name = ? , unit_measure = ? ,vehicle_type = ?, unit_price = ?,store_number = ?,part_type = ?,location = ?,class_type = ?,heavy_light = ?, consumable = ?,description = ? , date = ? WHERE part_number = ?;";
     
-    mysqlConnection.query(sql,[spare.part_number,spare.part_name,spare.unit_measure,spare.vehicle_type,spare.unit_price,spare.store_number,spare.part_type,spare.location,spare.description,spare.date,spare.part_number],(err,rows,fields)=>{
+    mysqlConnection.query(sql,[spare.part_number,spare.part_name,spare.unit_measure,spare.vehicle_type,spare.unit_price,spare.store_number,spare.part_type,spare.location,spare.class,spare.heavy_light,spare.consumable,spare.description,spare.date,spare.part_number],(err,rows,fields)=>{
         if(!err){
             res.send(rows);
             
@@ -446,6 +446,127 @@ router.put('/editspare',(req,res,next)=>{
 
 router.delete('/deletespare/:id',(req,res,next)=>{
     mysqlConnection.query("DELETE  FROM spare WHERE part_number = ?",[req.params.id],(err,rows,fields)=>{
+        if(!err){
+            res.send(rows);
+        }
+        else{
+            res.send(err);
+        }
+    });
+});
+
+//vehicle
+
+router.post('/getvehicle',(req,res,next)=>{
+    let vehicle = req.body;
+mysqlConnection.query('SELECT * FROM vehicle WHERE plate_number = ?  LIMIT 10;',[vehicle.plate_number],(err,rows,fields)=>{
+    if(!err){
+        res.send(rows);
+        
+    }
+    else{
+        res.send(err);
+    }
+});
+});
+
+
+router.post('/addvehicle',(req,res,next)=>{
+    let vehicle = req.body;
+    var sql = "INSERT IGNORE INTO vehicle(plate_number,chassi_number,fuel_type,factory,price,made_in,service_type,made_year,cc,tyers,description,_condition,heavy_light,load_type) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?);";
+    
+    mysqlConnection.query(sql,[vehicle.plate_number,vehicle.chassi_number,vehicle.fuel_type,vehicle.factory,vehicle.price,vehicle.made_in,vehicle.service_type,vehicle.made_year,vehicle.cc,vehicle.tyers,vehicle.description,vehicle._condition,vehicle.heavy_light,vehicle.load_type],(err,rows,fields)=>{
+        if(!err){
+            res.send(rows);
+            
+        }
+        else{
+            res.send(err);
+            
+        }
+    });
+
+});
+router.put('/editvehicle',(req,res,next)=>{
+    let vehicle = req.body;
+    var sql = "UPDATE vehicle SET  plate_number = ? , chassi_number = ? , fuel_type = ? ,factory = ?, price = ?,made_in = ?,service_type = ?,made_year = ?,cc = ?, tyers = ?,description  = ?,_condition = ?, heavy_light = ?, load_type = ? WHERE plate_number = ?;";
+    
+    mysqlConnection.query(sql,[vehicle.plate_number,vehicle.chassi_number,vehicle.fuel_type,vehicle.factory,vehicle.price,vehicle.made_in,vehicle.service_type,vehicle.made_year,vehicle.cc,vehicle.tyers,vehicle.description,vehicle._condition,vehicle.heavy_light,vehicle.load_type,vehicle.plate_number],(err,rows,fields)=>{
+        if(!err){
+            res.send(rows);
+            
+        }
+        else{
+            res.send(err);
+            
+        }
+    });
+
+});
+
+router.delete('/deletevehicle/:id',(req,res,next)=>{
+    mysqlConnection.query("DELETE  FROM vehicle WHERE plate_number = ?",[req.params.id],(err,rows,fields)=>{
+        if(!err){
+            res.send(rows);
+        }
+        else{
+            res.send(err);
+        }
+    });
+});
+
+
+//reception
+
+router.post('/getreception',(req,res,next)=>{
+    let reception = req.body;
+mysqlConnection.query('SELECT * FROM reception WHERE service_number = ?  LIMIT 10;',[reception.service_number],(err,rows,fields)=>{
+    if(!err){
+        res.send(rows);
+        
+    }
+    else{
+        res.send(err);
+    }
+});
+});
+
+
+router.post('/addreception',(req,res,next)=>{
+    let reception = req.body;
+    var sql = "INSERT IGNORE INTO reception(service_number,plate_number,refference,date_received,date_finished,service_type,status,fuel_gauge,damage,other) VALUES(?,?,?,?,?,?,?,?,?,?);";
+    
+    mysqlConnection.query(sql,[reception.service_number,reception.plate_number,reception.refference,reception.date_received,reception.date_finished,reception.service_type,reception.status,reception.fuel_gauge,reception.damage,reception.other],(err,rows,fields)=>{
+        if(!err){
+            res.send(rows);
+            
+        }
+        else{
+            res.send(err);
+            
+        }
+    });
+
+});
+router.put('/editreception',(req,res,next)=>{
+    let reception = req.body;
+    var sql = "UPDATE reception SET  service_number = ? , plate_number = ? , refference = ? ,date_received = ?, date_finished = ?,service_type = ?,status = ?,fuel_gauge = ?,damage = ?,other = ? WHERE service_number = ?;";
+    
+    mysqlConnection.query(sql,[reception.service_number,reception.plate_number,reception.refference,reception.date_received,reception.date_finished,reception.service_type,reception.status,reception.fuel_gauge,reception.damage,reception.other,reception.service_number],(err,rows,fields)=>{
+        if(!err){
+            res.send(rows);
+            
+        }
+        else{
+            res.send(err);
+            
+        }
+    });
+
+});
+
+router.delete('/deletereception/:id',(req,res,next)=>{
+    mysqlConnection.query("DELETE  FROM reception WHERE service_number = ?",[req.params.id],(err,rows,fields)=>{
         if(!err){
             res.send(rows);
         }
@@ -472,9 +593,9 @@ mysqlConnection.query('SELECT * FROM employe WHERE employe_id = ?  LIMIT 10;',[e
 
 router.post('/addemploye',(req,res,next)=>{
     let employe = req.body;
-    var sql = "INSERT IGNORE INTO employe(employe_id,title,name,gender,profession,responsibility,department,directorate,division,mastebaberiya,team,level,type,salary,birth_date,hire_date) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);";
+     var sql = "INSERT IGNORE INTO employe(employe_id,title,name,gender,profession,responsibility,department,directorate,division,mastebaberiya,team,level,type,salary,password,birth_date,hire_date) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);";
     
-    mysqlConnection.query(sql,[employe.employe_id,employe.title,employe.name,employe.gender,employe.profession,employe.responsibility,employe.department,employe.directorate,employe.division,employe.mastebaberiya,employe.team,employe.level,employe.type,employe.salary,employe.birth_date,employe.hire_date],(err,rows,fields)=>{
+    mysqlConnection.query(sql,[employe.employe_id,employe.title,employe.name,employe.gender,employe.profession,employe.responsibility,employe.department,employe.directorate,employe.division,employe.mastebaberiya,employe.team,employe.level,employe.type,employe.salary,employe.password,employe.birth_date,employe.hire_date],(err,rows,fields)=>{
         if(!err){
             res.send(rows);
             
@@ -488,7 +609,7 @@ router.post('/addemploye',(req,res,next)=>{
 });
 router.put('/editemploye',(req,res,next)=>{
     let employe = req.body;
-    var sql = "UPDATE spare SET  employe_id = ? , title = ? , name = ? ,gender = ?, profession = ?,responsibility = ?,department = ?,directorate = ? , division = ?,mastebaberiya = ?, team = ?, level = ?, type = ?, salary = ?, birth_date =?, hire_date = ? WHERE issue_refference_number = ?;";
+    var sql = "UPDATE spare SET  employe_id = ? , title = ? , name = ? ,gender = ?, profession = ?,responsibility = ?,department = ?,directorate = ? , division = ?,mastebaberiya = ?, team = ?, level = ?, type = ?, salary = ?,password, birth_date =?, hire_date = ? WHERE issue_refference_number = ?;";
     
     mysqlConnection.query(sql,[employe.employe_id,employe.title,employe.name,employe.gender,employe.profession,employe.responsibility,employe.department,employe.directorate,employe.division,employe.mastebaberiya,employe.team,employe.level,employe.type,employe.salary,employe.birth_date,employe.hire_date],(err,rows,fields)=>{
         if(!err){
@@ -514,6 +635,67 @@ router.delete('/deleteemploye/:id',(req,res,next)=>{
     });
 });
 
+//supplier registration
+
+router.post('/getsupplier',(req,res,next)=>{
+    let supplier = req.body;
+mysqlConnection.query('SELECT * FROM supplier WHERE supplier_id = ?  LIMIT 10;',[supplier.supplier_id],(err,rows,fields)=>{
+    if(!err){
+        res.send(rows);
+        
+    }
+    else{
+        res.send(err);
+    }
+});
+});
+
+
+router.post('/addsupplier',(req,res,next)=>{
+    let supplier = req.body;
+    var sql = "INSERT IGNORE INTO supplier(name,supplier_id,contact,address,tel1,tel2,website,date) VALUES(?,?,?,?,?,?,?,?);";
+    
+    mysqlConnection.query(sql,[supplier.name,supplier.supplier_id,supplier.contact,supplier.address,supplier.tel1,supplier.tel2,supplier.website,supplier.date],(err,rows,fields)=>{
+        if(!err){
+            res.send(rows);
+            
+        }
+        else{
+            res.send(err);
+            
+        }
+    });
+
+});
+router.put('/editesupplier',(req,res,next)=>{
+    let employe = req.body;
+    var sql = "UPDATE supplier SET  name = ? , supplier_id = ? , contact = ? ,address = ?, tel2 = ?,tel2 = ?,website = ?,date = ? WHERE supplier_id = ?;";
+    
+    mysqlConnection.query(sql,[supplier.name,supplier.supplier_id,supplier.contact,supplier.address,supplier.tel1,supplier.tel2,supplier.website,supplier.date,supplier.supplier_id],(err,rows,fields)=>{
+        if(!err){
+            res.send(rows);
+            
+        }
+        else{
+            res.send(err);
+            
+        }
+    });
+
+});
+
+router.delete('/deletesupplier/:id',(req,res,next)=>{
+    mysqlConnection.query("DELETE  FROM supplier WHERE supplier_id  = ?",[req.params.id],(err,rows,fields)=>{
+        if(!err){
+            res.send(rows);
+        }
+        else{
+            res.send(err);
+        }
+    });
+});
+
+
 //helper functions
 router.get('/getnames/:starting',(req,res,next)=>{
     //res.send('Retriving contacts')
@@ -521,6 +703,22 @@ router.get('/getnames/:starting',(req,res,next)=>{
     starting = starting+'%'
     
     mysqlConnection.query("SELECT name FROM employe where name  LIKE ?",starting,(err,rows,fields)=>{
+    if(!err){
+       
+        res.send(rows);
+        
+    }
+    else{
+        res.send(err);
+    }
+});
+});
+router.get('/getsuppliers/:starting',(req,res,next)=>{
+    //res.send('Retriving contacts')
+    let starting = req.params.starting;
+    starting = starting+'%'
+    
+    mysqlConnection.query("SELECT name FROM supplier where name  LIKE ?",starting,(err,rows,fields)=>{
     if(!err){
        
         res.send(rows);
@@ -548,5 +746,20 @@ router.get('/getbypartnumber/:partnumber',(req,res,next)=>{
     }
 });
 });
-
+router.get('/getplatenumber/:platenumber',(req,res,next)=>{
+    //res.send('Retriving contacts')
+    let starting = req.params.starting;
+    starting = starting+'%'
+    
+    mysqlConnection.query("SELECT plate_number FROM vehicle where plate_number  LIKE ?",starting,(err,rows,fields)=>{
+    if(!err){
+       
+        res.send(rows);
+        
+    }
+    else{
+        res.send(err);
+    }
+});
+});
 module.exports = router;
