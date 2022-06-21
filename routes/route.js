@@ -323,6 +323,8 @@ router.put('/editstorereceive',(req,res,next)=>{
 
 });
 
+
+
 router.delete('/deletestorereceive/:id',(req,res,next)=>{
     mysqlConnection.query("DELETE  FROM store_receive WHERE part_number = ?",[req.params.id],(err,rows,fields)=>{
         if(!err){
@@ -332,6 +334,39 @@ router.delete('/deletestorereceive/:id',(req,res,next)=>{
             res.send(err);
         }
     });
+});
+
+router.put('/decrementstoreremaining',(req,res,next)=>{
+    let store_receive = req.body;
+    var sql = "UPDATE store_receive SET  quantity_remaining =  ? WHERE part_number = ?;";
+    
+    mysqlConnection.query(sql,[store_receive.quantity_remaining,store_receive.part_number],(err,rows,fields)=>{
+        if(!err){
+            res.send(rows);
+            
+        }
+        else{
+            res.send(err);
+            
+        }
+    });
+
+});
+
+
+router.get('/getstorereceiveremaining/:part_number',(req,res,next)=>{
+    //res.send('Retriving contacts')
+    let part_number=req.params.part_number;
+    mysqlConnection.query("SELECT quantity_remaining FROM store_receive where part_number = ?",[part_number],(err,rows,fields)=>{
+    if(!err){
+       
+        res.send(rows);
+        
+    }
+    else{
+       
+    }
+});
 });
 
 //store issue
@@ -415,7 +450,7 @@ router.post('/addspare',(req,res,next)=>{
     let spare = req.body;
     var sql = "INSERT IGNORE INTO spare(part_number,part_name,unit_measure,vehicle_type,unit_price,store_number,part_type,location,class_type,heavy_light,consumable,description,date) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?);";
     
-    mysqlConnection.query(sql,[spare.part_number,spare.part_name,spare.unit_measure,spare.vehicle_type,spare.unit_price,spare.store_number,spare.part_type,spare.location,spare.class,spare.heavy_light,spare.consumable,spare.description,spare.date],(err,rows,fields)=>{
+    mysqlConnection.query(sql,[spare.part_number,spare.part_name,spare.unit_measure,spare.vehicle_type,spare.unit_price,spare.store_number,spare.part_type,spare.location,spare.class_type,spare.heavy_light,spare.consumable,spare.description,spare.date],(err,rows,fields)=>{
         if(!err){
             res.send(rows);
             
@@ -429,9 +464,9 @@ router.post('/addspare',(req,res,next)=>{
 });
 router.put('/editspare',(req,res,next)=>{
     let spare = req.body;
-    var sql = "UPDATE spare SET  part_number = ? , part_name = ? , unit_measure = ? ,vehicle_type = ?, unit_price = ?,store_number = ?,part_type = ?,location = ?,class_type = ?,heavy_light = ?, consumable = ?,description = ? , date = ? WHERE part_number = ?;";
+    var sql = "UPDATE spare SET  part_number = ? , part_name = ? , unit_measure = ? ,vehicle_type = ?, unit_price = ?,store_number = ?,part_type = ?,location = ?,description = ? , date = ? WHERE part_number = ?;";
     
-    mysqlConnection.query(sql,[spare.part_number,spare.part_name,spare.unit_measure,spare.vehicle_type,spare.unit_price,spare.store_number,spare.part_type,spare.location,spare.class,spare.heavy_light,spare.consumable,spare.description,spare.date,spare.part_number],(err,rows,fields)=>{
+    mysqlConnection.query(sql,[spare.part_number,spare.part_name,spare.unit_measure,spare.vehicle_type,spare.unit_price,spare.store_number,spare.part_type,spare.location,spare.description,spare.date,spare.part_number],(err,rows,fields)=>{
         if(!err){
             res.send(rows);
             
@@ -609,9 +644,9 @@ router.post('/addemploye',(req,res,next)=>{
 });
 router.put('/editemploye',(req,res,next)=>{
     let employe = req.body;
-    var sql = "UPDATE spare SET  employe_id = ? , title = ? , name = ? ,gender = ?, profession = ?,responsibility = ?,department = ?,directorate = ? , division = ?,mastebaberiya = ?, team = ?, level = ?, type = ?, salary = ?,password, birth_date =?, hire_date = ? WHERE issue_refference_number = ?;";
+    var sql = "UPDATE employe SET  employe_id = ? , title = ? , name = ? ,gender = ?, profession = ?,responsibility = ?,department = ?,directorate = ? , division = ?,mastebaberiya = ?, team = ?, level = ?, type = ?, salary = ?,password = ?, birth_date =?, hire_date = ? WHERE employe_id = ?;";
     
-    mysqlConnection.query(sql,[employe.employe_id,employe.title,employe.name,employe.gender,employe.profession,employe.responsibility,employe.department,employe.directorate,employe.division,employe.mastebaberiya,employe.team,employe.level,employe.type,employe.salary,employe.birth_date,employe.hire_date],(err,rows,fields)=>{
+    mysqlConnection.query(sql,[employe.employe_id,employe.title,employe.name,employe.gender,employe.profession,employe.responsibility,employe.department,employe.directorate,employe.division,employe.mastebaberiya,employe.team,employe.level,employe.type,employe.salary,employe.password,employe.birth_date,employe.hire_date,employe.employe_id],(err,rows,fields)=>{
         if(!err){
             res.send(rows);
             
